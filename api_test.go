@@ -2,6 +2,7 @@ package sigsci
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -13,11 +14,15 @@ import (
 type TestCreds struct {
 	email string
 	token string
+	corp  string
+	site  string
 }
 
 var testcreds = TestCreds{
 	email: os.Getenv("SIGSCI_EMAIL"),
-	token: os.Getenv("SIGSCI_TOKEN"), //"6b62cee3-bd06-487e-9283-d565078b7a8f",
+	token: os.Getenv("SIGSCI_TOKEN"),
+	corp:  os.Getenv("SIGSCI_CORP"),
+	site:  os.Getenv("SIGSCI_SITE"),
 }
 
 func ExampleClient_InviteUser() {
@@ -29,10 +34,10 @@ func ExampleClient_InviteUser() {
 	}
 
 	invite := NewCorpUserInvite(RoleCorpUser, []SiteMembership{
-		NewSiteMembership("www.mysite.com", RoleSiteOwner),
+		NewSiteMembership(testcreds.site, RoleSiteOwner),
 	})
 
-	_, err = sc.InviteUser("testcorp", "test@test.net", invite)
+	_, err = sc.InviteUser(testcreds.corp, "test@test.net", invite)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,19 +61,18 @@ func TestGoUserTokenClient(t *testing.T) {
 			if corps, err := sc.ListCorps(); err != nil {
 				t.Fatal(err)
 			} else {
-				assert.Equal(t, "splunk-testcorp", corps[0].Name)
+				assert.Equal(t, testcreds.corp, corps[0].Name)
 			}
 		})
 	}
 }
 func TestCreateDeleteSite(t *testing.T) {
-	t.Skip()
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-testcorp"
+	corp := testcreds.corp
 
 	siteBody := CreateSiteBody{
-		Name:                 "janitha-test-site",
-		DisplayName:          "Janitha Test Site",
+		Name:                 "test-site",
+		DisplayName:          "Test Site",
 		AgentLevel:           "Log",
 		BlockHTTPCode:        406,
 		BlockDurationSeconds: 86400,
@@ -78,7 +82,7 @@ func TestCreateDeleteSite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "Janitha Test Site", siteresponse.DisplayName)
+	assert.Equal(t, "Test Site", siteresponse.DisplayName)
 	err = sc.DeleteSite(corp, siteBody.Name)
 	if err != nil {
 		t.Logf("%#v", err)
@@ -121,8 +125,8 @@ func TestCreateReadUpdateDeleteSiteRules(t *testing.T) {
 		},
 	}
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 	createResp, err := sc.CreateSiteRule(corp, site, createSiteRulesBody)
 	if err != nil {
 		t.Fatal(err)
@@ -188,13 +192,13 @@ func TestCreateReadUpdateDeleteSiteRules(t *testing.T) {
 }
 
 func TestUnMarshalListData(t *testing.T) {
-	resp := []byte(`{
+	resp := []byte(fmt.Sprintf(`{
 		"totalCount": 1,
 		"data": [
 		  {
 			"id": "5e84ec28bf612801c7f0f109",
 			"siteNames": [
-			  "splunk-test"
+			  "%s"
 			],
 			"type": "signal",
 			"enabled": true,
@@ -215,12 +219,12 @@ func TestUnMarshalListData(t *testing.T) {
 			"signal": "SQLI",
 			"reason": "Example site rule",
 			"expiration": "",
-			"createdBy": "janitha.jayaweera@gmail.com",
+			"createdBy": "test@gmail.com",
 			"created": "2020-04-01T19:31:52Z",
 			"updated": "2020-04-01T19:31:52Z"
 		  }
 		]
-	  }`)
+	  }`, testcreds.site))
 
 	var responseRulesList ResponseSiteRuleBodyList
 	err := json.Unmarshal(resp, &responseRulesList)
@@ -233,15 +237,13 @@ func TestUnMarshalListData(t *testing.T) {
 }
 
 func TestDeleteAllSiteRules(t *testing.T) {
-	t.SkipNow()
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 	respList, err := sc.GetAllSiteRules(corp, site)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// assert.Equal(t, 0, len(respList))
 	for _, rule := range respList.Data {
 		sc.DeleteSiteRuleByID(corp, site, rule.ID)
 	}
@@ -254,8 +256,8 @@ func TestDeleteAllSiteRules(t *testing.T) {
 
 func TestCreateReadUpdateDeleteSiteList(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 	createSiteListBody := CreateListBody{
 		Name:        "My new list",
 		Type:        "ip",
@@ -309,8 +311,8 @@ func TestCreateReadUpdateDeleteSiteList(t *testing.T) {
 
 func TestCreateMultipleRedactions(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 
 	createSiteRedactionBody := CreateSiteRedactionBody{
 		Field:         "privatefield",
@@ -357,8 +359,8 @@ func TestCreateMultipleRedactions(t *testing.T) {
 }
 func TestCreateListUpdateDeleteRedaction(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 
 	createSiteRedactionBody := CreateSiteRedactionBody{
 		Field:         "privatefield",
@@ -397,8 +399,8 @@ func TestCreateListUpdateDeleteRedaction(t *testing.T) {
 
 func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 
 	createCustomAlert := CreateCustomAlertBody{
 		TagName:              "SQLI",
@@ -410,7 +412,6 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 		Action:               "flagged",
 	}
 	createresp, err := sc.CreateSiteCustomAlert(corp, site, createCustomAlert)
-	// t.Logf("%#v", createresp.Data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +435,6 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// t.Logf("%#v", updateresp)
 	assert.NotEqual(t, createCustomAlert, updateresp.CreateCustomAlertBody)
 	assert.Equal(t, updateCustomAlert, updateresp.CreateCustomAlertBody)
 	allalerts, err := sc.GetAllSiteCustomAlerts(corp, site)
@@ -443,16 +443,14 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(allalerts.Data))
 	assert.Equal(t, updateCustomAlert, allalerts.Data[0].CreateCustomAlertBody)
-	// for _, createresp := range allalerts.Data {
 	err = sc.DeleteSiteCustomAlertByID(corp, site, createresp.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// }
 }
 func TestCreateReadUpdateDeleteCorpRule(t *testing.T) {
 	createCorpRuleBody := CreateCorpRuleBody{
-		SiteNames:     []string{"splunk-test"},
+		SiteNames:     []string{testcreds.site},
 		Type:          "signal",
 		GroupOperator: "all",
 		Conditions: []Condition{
@@ -487,7 +485,7 @@ func TestCreateReadUpdateDeleteCorpRule(t *testing.T) {
 		CorpScope:  "specificSites",
 	}
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
+	corp := testcreds.corp
 	createResp, err := sc.CreateCorpRule(corp, createCorpRuleBody)
 	if err != nil {
 		t.Fatal(err)
@@ -501,7 +499,7 @@ func TestCreateReadUpdateDeleteCorpRule(t *testing.T) {
 	}
 	assert.Equal(t, readResp, createResp)
 	updateCorpRuleBody := CreateCorpRuleBody{
-		SiteNames:     []string{"splunk-test"},
+		SiteNames:     []string{testcreds.site},
 		Type:          "signal",
 		GroupOperator: "all",
 		Conditions: []Condition{
@@ -556,7 +554,7 @@ func TestCreateReadUpdateDeleteCorpRule(t *testing.T) {
 
 func TestCreateReadUpdateDeleteCorpList(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
+	corp := testcreds.corp
 	createCorpListBody := CreateListBody{
 		Name:        "My new List",
 		Type:        "ip",
@@ -572,6 +570,7 @@ func TestCreateReadUpdateDeleteCorpList(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, createCorpListBody, createresp.CreateListBody)
+	now := time.Now()
 	expectedCreateResponse := ResponseListBody{
 		CreateListBody: CreateListBody{
 			Name:        "My new List",
@@ -585,11 +584,11 @@ func TestCreateReadUpdateDeleteCorpList(t *testing.T) {
 		},
 		ID:        "corp.my-new-list",
 		CreatedBy: "",
-		Created:   time.Time{}, //wall: 0x0, ext: 63725163294, loc: (*time.Location)(nil)},
-		Updated:   time.Time{}, //wall: 0x0, ext: 63725163294, loc: (*time.Location)(nil)},
+		Created:   now,
+		Updated:   now,
 	}
-	createresp.Created = time.Time{}
-	createresp.Updated = time.Time{}
+	createresp.Created = now
+	createresp.Updated = now
 	createresp.CreatedBy = ""
 	assert.Equal(t, expectedCreateResponse, createresp)
 
@@ -636,7 +635,7 @@ func TestCreateReadUpdateDeleteCorpList(t *testing.T) {
 
 func TestCreateReadUpdateDeleteCorpTag(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
+	corp := testcreds.corp
 	createSignalTagBody := CreateSignalTagBody{
 		ShortName:   "Example Signal Tag 1",
 		Description: "An example of a custom signal tag",
@@ -693,8 +692,8 @@ func TestCreateReadUpdateDeleteCorpTag(t *testing.T) {
 
 func TestCreateReadUpdateDeleteSignalTag(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
-	corp := "splunk-tescorp"
-	site := "splunk-test"
+	corp := testcreds.corp
+	site := testcreds.site
 	createSignalTagBody := CreateSignalTagBody{
 		ShortName:   "example-signal-tag",
 		Description: "An example of a custom signal tag",
