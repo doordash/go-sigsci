@@ -1758,7 +1758,7 @@ func (sc Client) CreateSite(corpName string, body CreateSiteBody) (Site, error) 
 	return site, nil
 }
 
-// DeleteSite deltes the site
+// DeleteSite deletes the site
 func (sc Client) DeleteSite(corpName, siteName string) error {
 	_, err := sc.doRequest("DELETE", fmt.Sprintf("/v0/corps/%s/sites/%s", corpName, siteName), "")
 
@@ -1780,19 +1780,28 @@ type Condition struct {
 
 // Action contains the rule action
 type Action struct {
-	Type string `json:"type,omitempty"` //(block, allow, exclude)
+	Type   string `json:"type,omitempty"` //(block, allow, exclude)
+	Signal string `json:"signal,omitempty"`
+}
+
+// RateLimit holds all the data that is specific to rate limit rules
+type RateLimit struct {
+	Threshold int `json:"threshold"`
+	Interval  int `json:"interval"` // interval in minutes, 1 or 10
+	Duration  int `json:"duration"` // duration in seconds
 }
 
 //CreateSiteRuleBody contains the rule for the site
 type CreateSiteRuleBody struct {
-	Type          string      `json:"type,omitempty,omitempty"` //(group, single)
+	Type          string      `json:"type,omitempty,omitempty"` //(signal, request, rateLimit)
 	GroupOperator string      `json:"groupOperator,omitempty"`  //type: group - Conditions that must be matched when evaluating the request (all, any)
 	Enabled       bool        `json:"enabled,omitempty"`
 	Reason        string      `json:"reason,omitempty"`     //Description of the rule
-	Signal        string      `json:"signal,omitempty"`     //The signal id of the signal being excluded
+	Signal        string      `json:"signal,omitempty"`     //The signal id of the signal being excluded. Null unless type==request
 	Expiration    string      `json:"expiration,omitempty"` //Date the rule will automatically be disabled. If rule is always enabled, will return empty string
 	Conditions    []Condition `json:"conditions,omitempty"`
 	Actions       []Action    `json:"actions,omitempty"`
+	RateLimit     RateLimit   `json:"rateLimit,omitempty"` //Null unless type==rateLimit
 }
 
 // ResponseSiteRuleBody contains the response from creating the rule
@@ -1883,7 +1892,7 @@ func (sc *Client) GetAllSiteRules(corpName, siteName string) (ResponseSiteRuleBo
 // CreateListBody Create List Request
 type CreateListBody struct {
 	Name        string   `json:"name,omitempty"`        //Descriptive list name
-	Type        string   `json:"type,omitempty"`        //List types (string, ip, country, wildcard)
+	Type        string   `json:"type,omitempty"`        //List types (string, ip, country, wildcard, signal)
 	Description string   `json:"description,omitempty"` //Optional list description
 	Entries     []string `json:"entries,omitempty"`     //List entries
 }
@@ -2094,7 +2103,7 @@ func (sc *Client) GetAllSiteRedactions(corpName, siteName string) (ResponseSiteR
 //CreateCorpRuleBody contains the rule of a Corp
 type CreateCorpRuleBody struct {
 	SiteNames     []string    `json:"siteNames,omitempty"`      //Sites with the rule available. Rules with a global corpScope will return '[]'.
-	Type          string      `json:"type,omitempty,omitempty"` //(group, single)
+	Type          string      `json:"type,omitempty,omitempty"` //(request, signal)
 	CorpScope     string      `json:"corpScope,omitempty"`      //Whether the rule is applied to all sites or to specific sites. (global, specificSites)
 	Enabled       bool        `json:"enabled,omitempty"`
 	GroupOperator string      `json:"groupOperator,omitempty"` //type: group - Conditions that must be matched when evaluating the request (all, any)
