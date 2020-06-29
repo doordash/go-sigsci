@@ -506,6 +506,8 @@ type UpdateSiteBody struct {
 	DisplayName          string `json:"displayName,omitempty"`
 	AgentLevel           string `json:"agentLevel,omitempty"`
 	BlockDurationSeconds int    `json:"blockDurationSeconds,omitempty"`
+	BlockHTTPCode        int    `json:"blockHTTPCode,omitempty"`
+	AgentAnonMode        string `json:"agentAnonMode,omitempty"`
 }
 
 // UpdateSite updates a site by name.
