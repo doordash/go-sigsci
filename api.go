@@ -534,7 +534,8 @@ func (sc *Client) UpdateSite(corpName, siteName string, body UpdateSiteBody) (Si
 
 // CustomAlert is the body for creating a custom alert.
 type CustomAlert struct {
-	ID                   string    `json:"id,omitempty"`         //Site-specific unique ID of the alert
+	ID                   string    `json:"id,omitempty"` //Site-specific unique ID of the alert
+	SiteID               string    `json:"siteID,omitempty"`
 	TagName              string    `json:"tagName,omitempty"`    //The name of the tag whose occurrences the alert is watching. Must match an existing tag
 	LongName             string    `json:"longName,omitempty"`   //A human readable description of the alert. Must be between 3 and 25 characters.
 	Interval             int       `json:"interval"`             //The number of minutes of past traffic to examine. Must be 1, 10 or 60.
