@@ -462,6 +462,7 @@ type Site struct {
 	AnalyticsEvents      map[string]string
 	TopAttacks           map[string]string
 	Members              map[string]string
+	AgentAnonMode        string
 }
 
 // sitesResponse is the response for list sites.
@@ -1732,12 +1733,12 @@ func (sc *Client) GetTimeseries(corpName, siteName string, query url.Values) ([]
 
 // CreateSiteBody is the structure required to create a Site.
 type CreateSiteBody struct {
-	Name                 string `json:"name,omitempty"`          //Identifying name of the site
-	DisplayName          string `json:"displayName,omitempty"`   //Display name of the site
-	AgentLevel           string `json:"agentLevel,omitempty"`    //Agent action level - 'block', 'log' or 'off'
-	AgentAnonMode        string `json:"agentAnonMode,omitempty"` //Agent IP anonimization mode - 'EU' or 'off'
-	BlockHTTPCode        int    `json:"blockHTTPCode,omitempty"` //HTTP response code to send when when traffic is being blocked
-	BlockDurationSeconds int    `json:"blockDurationSeconds"`    //Duration to block an IP in seconds
+	Name                 string `json:"name,omitempty"`                 //Identifying name of the site
+	DisplayName          string `json:"displayName,omitempty"`          //Display name of the site
+	AgentLevel           string `json:"agentLevel,omitempty"`           //Agent action level - 'block', 'log' or 'off'
+	AgentAnonMode        string `json:"agentAnonMode,omitempty"`        //Agent IP anonimization mode - 'EU' or ''
+	BlockHTTPCode        int    `json:"blockHTTPCode,omitempty"`        //HTTP response code to send when when traffic is being blocked
+	BlockDurationSeconds int    `json:"blockDurationSeconds,omitempty"` //Duration to block an IP in seconds
 }
 
 // CreateSite Creates a site in a corp.

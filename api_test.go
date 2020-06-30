@@ -66,16 +66,16 @@ func TestGoUserTokenClient(t *testing.T) {
 		})
 	}
 }
-func TestCreateDeleteSite(t *testing.T) {
+func TestCreateUpdateDeleteSite(t *testing.T) {
 	sc := NewTokenClient(testcreds.email, testcreds.token)
 	corp := testcreds.corp
 
 	siteBody := CreateSiteBody{
 		Name:                 "test-site",
 		DisplayName:          "Test Site",
-		AgentLevel:           "Log",
-		BlockHTTPCode:        406,
-		BlockDurationSeconds: 86400,
+		AgentLevel:           "block",
+		BlockHTTPCode:        407,
+		BlockDurationSeconds: 86401,
 		AgentAnonMode:        "",
 	}
 	siteresponse, err := sc.CreateSite(corp, siteBody)
@@ -83,6 +83,25 @@ func TestCreateDeleteSite(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, "Test Site", siteresponse.DisplayName)
+	assert.Equal(t, "block", siteresponse.AgentLevel)
+	assert.Equal(t, 407, siteresponse.BlockHTTPCode)
+	assert.Equal(t, 86401, siteresponse.BlockDurationSeconds)
+	assert.Equal(t, "", siteresponse.AgentAnonMode)
+
+	updateSite, err := sc.UpdateSite(corp, siteBody.Name, UpdateSiteBody{
+		DisplayName:          "Test Site 2",
+		AgentLevel:           "off",
+		BlockDurationSeconds: 86402,
+		BlockHTTPCode:        408,
+		AgentAnonMode:        "EU",
+	})
+
+	assert.Equal(t, "Test Site 2", updateSite.DisplayName)
+	assert.Equal(t, "off", updateSite.AgentLevel)
+	assert.Equal(t, 408, updateSite.BlockHTTPCode)
+	assert.Equal(t, 86402, updateSite.BlockDurationSeconds)
+	assert.Equal(t, "EU", updateSite.AgentAnonMode)
+
 	err = sc.DeleteSite(corp, siteBody.Name)
 	if err != nil {
 		t.Logf("%#v", err)
