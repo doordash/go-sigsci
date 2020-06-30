@@ -557,7 +557,7 @@ type customAlertsResponse struct {
 }
 
 // ListCustomAlerts lists custom alerts for a given corp and site.
-func (sc Client) ListCustomAlerts(corpName, siteName string) ([]CustomAlert, error) {
+func (sc *Client) ListCustomAlerts(corpName, siteName string) ([]CustomAlert, error) {
 	resp, err := sc.doRequest("GET", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts", corpName, siteName), "")
 	if err != nil {
 		return []CustomAlert{}, logError(1, fmt.Errorf("%s with %s %s ", err.Error(), corpName, siteName))
@@ -573,7 +573,7 @@ func (sc Client) ListCustomAlerts(corpName, siteName string) ([]CustomAlert, err
 }
 
 // CreateSiteCustomAlert creates a custom alert.
-func (sc Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlert) (CustomAlert, error) {
+func (sc *Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlert) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return CustomAlert{}, err
@@ -592,8 +592,8 @@ func (sc Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAle
 	return c, nil
 }
 
-// GetSiteCustomAlertByID gets a custom alert by ID
-func (sc Client) GetSiteCustomAlertByID(corpName, siteName, id string) (CustomAlert, error) {
+// GetCustomAlert gets a custom alert by ID
+func (sc *Client) GetCustomAlert(corpName, siteName, id string) (CustomAlert, error) {
 	resp, err := sc.doRequest("GET", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts/%s", corpName, siteName, id), "")
 	if err != nil {
 		return CustomAlert{}, err
@@ -608,8 +608,8 @@ func (sc Client) GetSiteCustomAlertByID(corpName, siteName, id string) (CustomAl
 	return ca, nil
 }
 
-// UpdateSiteCustomAlertByID updates a custom alert by id.
-func (sc Client) UpdateSiteCustomAlertByID(corpName, siteName, id string, body CustomAlert) (CustomAlert, error) {
+// UpdateCustomAlert updates a custom alert by id.
+func (sc *Client) UpdateCustomAlert(corpName, siteName, id string, body CustomAlert) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return CustomAlert{}, logError(1, fmt.Errorf("%s with input %#v", err.Error(), string(b)))
@@ -629,8 +629,8 @@ func (sc Client) UpdateSiteCustomAlertByID(corpName, siteName, id string, body C
 	return c, err
 }
 
-// DeleteSiteCustomAlertByID deletes a custom alert.
-func (sc Client) DeleteSiteCustomAlertByID(corpName, siteName, id string) error {
+// DeleteCustomAlert deletes a custom alert.
+func (sc *Client) DeleteCustomAlert(corpName, siteName, id string) error {
 	_, err := sc.doRequest("DELETE", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts/%s", corpName, siteName, id), "")
 
 	return err

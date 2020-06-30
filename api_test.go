@@ -441,7 +441,7 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	createCustomAlert.Created = createresp.Created
 	createCustomAlert.CreatedBy = createresp.CreatedBy
 	assert.Equal(t, createCustomAlert, createresp)
-	readresp, err := sc.GetSiteCustomAlertByID(corp, site, createresp.ID)
+	readresp, err := sc.GetCustomAlert(corp, site, createresp.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -458,7 +458,7 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 		FieldName:            "remoteIP",
 		Type:                 "siteAlert",
 	}
-	updateResp, err := sc.UpdateSiteCustomAlertByID(corp, site, readresp.ID, updateCustomAlert)
+	updateResp, err := sc.UpdateCustomAlert(corp, site, readresp.ID, updateCustomAlert)
 
 	// set unknown fields just for equality
 	updateCustomAlert.ID = updateResp.ID
@@ -476,7 +476,7 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(allalerts))
 	assert.Equal(t, updateCustomAlert, allalerts[0])
-	err = sc.DeleteSiteCustomAlertByID(corp, site, createresp.ID)
+	err = sc.DeleteCustomAlert(corp, site, createresp.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
