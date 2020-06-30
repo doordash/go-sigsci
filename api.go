@@ -582,8 +582,8 @@ type CustomAlertBody struct {
 	Action    string `json:"action"`
 }
 
-// CreateSiteCustomAlert creates a custom alert.
-func (sc *Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlertBody) (CustomAlert, error) {
+// CreateCustomAlert creates a custom alert.
+func (sc *Client) CreateCustomAlert(corpName, siteName string, body CustomAlertBody) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return CustomAlert{}, err

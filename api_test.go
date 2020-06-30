@@ -429,7 +429,7 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 		Enabled:   true,
 		Action:    "flagged",
 	}
-	createresp, err := sc.CreateSiteCustomAlert(corp, site, createCustomAlert)
+	createresp, err := sc.CreateCustomAlert(corp, site, createCustomAlert)
 	if err != nil {
 		t.Fatal(err)
 	}
