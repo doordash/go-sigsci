@@ -532,102 +532,97 @@ func (sc *Client) UpdateSite(corpName, siteName string, body UpdateSiteBody) (Si
 	return site, nil
 }
 
-// CreateCustomAlertBody is the body for creating a custom alert.
-type CreateCustomAlertBody struct {
-	TagName              string `json:"tagName,omitempty"`    //The name of the tag whose occurrences the alert is watching. Must match an existing tag
-	LongName             string `json:"longName,omitempty"`   //A human readable description of the alert. Must be between 3 and 25 characters.
-	Interval             int    `json:"interval"`             //The number of minutes of past traffic to examine. Must be 1, 10 or 60.
-	Threshold            int    `json:"threshold"`            //The number of occurrences of the tag in the interval needed to trigger the alert.
-	BlockDurationSeconds int    `json:"blockDurationSeconds"` //The number of seconds this alert is active.
-	Enabled              bool   `json:"enabled"`              //A flag to toggle this alert.
-	Action               string `json:"action,omitempty"`     //A flag that describes what happens when the alert is triggered. 'info' creates an incident in the dashboard. 'flagged' creates an incident and blocks traffic for 24 hours.
+// CustomAlert is the body for creating a custom alert.
+type CustomAlert struct {
+	ID                   string    `json:"id,omitempty"`         //Site-specific unique ID of the alert
+	TagName              string    `json:"tagName,omitempty"`    //The name of the tag whose occurrences the alert is watching. Must match an existing tag
+	LongName             string    `json:"longName,omitempty"`   //A human readable description of the alert. Must be between 3 and 25 characters.
+	Interval             int       `json:"interval"`             //The number of minutes of past traffic to examine. Must be 1, 10 or 60.
+	Threshold            int       `json:"threshold"`            //The number of occurrences of the tag in the interval needed to trigger the alert.
+	BlockDurationSeconds int       `json:"blockDurationSeconds"` //The number of seconds this alert is active.
+	Enabled              bool      `json:"enabled"`              //A flag to toggle this alert.
+	Action               string    `json:"action,omitempty"`     //A flag that describes what happens when the alert is triggered. 'info' creates an incident in the dashboard. 'flagged' creates an incident and blocks traffic for 24 hours.
+	Type                 string    `json:"type,omitempty"`       //Type of alert (siteAlert, template, rateLimit, siteMetric)
+	SkipNotifications    bool      `json:"skipNotifications"`    //A flag to disable external notifications - slack, webhooks, emails, etc.
+	FieldName            string    `json:"fieldName,omitempty"`
+	CreatedBy            string    `json:"createdBy,omitempty"` //The email of the user that created the alert
+	Created              time.Time `json:"created,omitempty"`   //RFC3339 date time
+	Operator             string
 }
 
-//ResponseCustomAlertBody contains the data for a custom alert
-type ResponseCustomAlertBody struct {
-	CreateCustomAlertBody
-	ID                string    `json:"id,omitempty"`      //Site-specific unique ID of the alert
-	Type              string    `json:"type,omitempty"`    //Type of alert (siteAlert, template, rateLimit, siteMetric)
-	SkipNotifications bool      `json:"skipNotifications"` //A flag to disable external notifications - slack, webhooks, emails, etc.
-	FieldName         string    `json:"fieldName,omitempty"`
-	CreatedBy         string    `json:"createdBy,omitempty"` //The email of the user that created the alert
-	Created           time.Time `json:"created,omitempty"`   //Created RFC3339 date time
-	Operator          string
+// customAlertsResponse is the response for the alerts endpoint
+type customAlertsResponse struct {
+	Data []CustomAlert
 }
 
-// ResponseCustomAlertsBodyList is the response for the alerts endpoint
-type ResponseCustomAlertsBodyList struct {
-	Data []ResponseCustomAlertBody
-}
-
-// GetAllSiteCustomAlerts lists custom alerts for a given corp and site.
-func (sc Client) GetAllSiteCustomAlerts(corpName, siteName string) (ResponseCustomAlertsBodyList, error) {
+// ListCustomAlerts lists custom alerts for a given corp and site.
+func (sc Client) ListCustomAlerts(corpName, siteName string) ([]CustomAlert, error) {
 	resp, err := sc.doRequest("GET", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts", corpName, siteName), "")
 	if err != nil {
-		return ResponseCustomAlertsBodyList{}, logError(1, fmt.Errorf("%s with %s %s ", err.Error(), corpName, siteName))
+		return []CustomAlert{}, logError(1, fmt.Errorf("%s with %s %s ", err.Error(), corpName, siteName))
 	}
 
-	var car ResponseCustomAlertsBodyList
+	var car customAlertsResponse
 	err = json.Unmarshal(resp, &car)
 	if err != nil {
-		return ResponseCustomAlertsBodyList{}, err
+		return []CustomAlert{}, err
 	}
 
-	return car, nil
+	return car.Data, nil
 }
 
 // CreateSiteCustomAlert creates a custom alert.
-func (sc Client) CreateSiteCustomAlert(corpName, siteName string, body CreateCustomAlertBody) (ResponseCustomAlertBody, error) {
+func (sc Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlert) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 
 	resp, err := sc.doRequest("POST", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts", corpName, siteName), string(b))
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 
-	var c ResponseCustomAlertBody
+	var c CustomAlert
 	err = json.Unmarshal(resp, &c)
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 	return c, nil
 }
 
 // GetSiteCustomAlertByID gets a custom alert by ID
-func (sc Client) GetSiteCustomAlertByID(corpName, siteName, id string) (ResponseCustomAlertBody, error) {
+func (sc Client) GetSiteCustomAlertByID(corpName, siteName, id string) (CustomAlert, error) {
 	resp, err := sc.doRequest("GET", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts/%s", corpName, siteName, id), "")
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 
-	var ca ResponseCustomAlertBody
+	var ca CustomAlert
 	err = json.Unmarshal(resp, &ca)
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 
 	return ca, nil
 }
 
 // UpdateSiteCustomAlertByID updates a custom alert by id.
-func (sc Client) UpdateSiteCustomAlertByID(corpName, siteName, id string, body CreateCustomAlertBody) (ResponseCustomAlertBody, error) {
+func (sc Client) UpdateSiteCustomAlertByID(corpName, siteName, id string, body CustomAlert) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
-		return ResponseCustomAlertBody{}, logError(1, fmt.Errorf("%s with input %#v", err.Error(), string(b)))
+		return CustomAlert{}, logError(1, fmt.Errorf("%s with input %#v", err.Error(), string(b)))
 	}
 
 	resp, err := sc.doRequest("PATCH", fmt.Sprintf("/v0/corps/%s/sites/%s/alerts/%s", corpName, siteName, id), string(b))
 	if err != nil {
-		return ResponseCustomAlertBody{}, logError(1, fmt.Errorf("%s with input %v", err.Error(), string(b)))
+		return CustomAlert{}, logError(1, fmt.Errorf("%s with input %v", err.Error(), string(b)))
 	}
 
-	var c ResponseCustomAlertBody
+	var c CustomAlert
 	err = json.Unmarshal(resp, &c)
 	if err != nil {
-		return ResponseCustomAlertBody{}, err
+		return CustomAlert{}, err
 	}
 
 	return c, err
