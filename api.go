@@ -572,8 +572,18 @@ func (sc *Client) ListCustomAlerts(corpName, siteName string) ([]CustomAlert, er
 	return car.Data, nil
 }
 
+// CustomAlertBody is the body for creating a custom alert.
+type CustomAlertBody struct {
+	TagName   string `json:"tagName"`
+	LongName  string `json:"longName"`
+	Interval  int    `json:"interval"`
+	Threshold int    `json:"threshold"`
+	Enabled   bool   `json:"enabled"`
+	Action    string `json:"action"`
+}
+
 // CreateSiteCustomAlert creates a custom alert.
-func (sc *Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlert) (CustomAlert, error) {
+func (sc *Client) CreateSiteCustomAlert(corpName, siteName string, body CustomAlertBody) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return CustomAlert{}, err
@@ -609,7 +619,7 @@ func (sc *Client) GetCustomAlert(corpName, siteName, id string) (CustomAlert, er
 }
 
 // UpdateCustomAlert updates a custom alert by id.
-func (sc *Client) UpdateCustomAlert(corpName, siteName, id string, body CustomAlert) (CustomAlert, error) {
+func (sc *Client) UpdateCustomAlert(corpName, siteName, id string, body CustomAlertBody) (CustomAlert, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return CustomAlert{}, logError(1, fmt.Errorf("%s with input %#v", err.Error(), string(b)))

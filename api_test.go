@@ -421,61 +421,67 @@ func TestSiteCreateReadUpdateDeleteAlerts(t *testing.T) {
 	corp := testcreds.corp
 	site := testcreds.site
 
-	createCustomAlert := CustomAlert{
-		TagName:              "SQLI",
-		LongName:             "Example Alert",
-		BlockDurationSeconds: 1,
-		Interval:             1,
-		Threshold:            10,
-		Enabled:              true,
-		Action:               "flagged",
-		Type:                 "siteAlert",
-		FieldName:            "remoteIP",
+	createCustomAlert := CustomAlertBody{
+		TagName:   "SQLI",
+		LongName:  "Example Alert",
+		Interval:  1,
+		Threshold: 10,
+		Enabled:   true,
+		Action:    "flagged",
 	}
 	createresp, err := sc.CreateSiteCustomAlert(corp, site, createCustomAlert)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// set unknown fields just for equality
-	createCustomAlert.ID = createresp.ID
-	createCustomAlert.Created = createresp.Created
-	createCustomAlert.CreatedBy = createresp.CreatedBy
-	assert.Equal(t, createCustomAlert, createresp)
+	assert.Equal(t, createCustomAlert.TagName, createresp.TagName)
+	assert.Equal(t, createCustomAlert.LongName, createresp.LongName)
+	assert.Equal(t, createCustomAlert.Interval, createresp.Interval)
+	assert.Equal(t, createCustomAlert.Threshold, createresp.Threshold)
+	assert.Equal(t, createCustomAlert.Enabled, createresp.Enabled)
+	assert.Equal(t, createCustomAlert.Action, createresp.Action)
 	readresp, err := sc.GetCustomAlert(corp, site, createresp.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, createCustomAlert, readresp)
+	assert.Equal(t, createCustomAlert.TagName, readresp.TagName)
+	assert.Equal(t, createCustomAlert.LongName, readresp.LongName)
+	assert.Equal(t, createCustomAlert.Interval, readresp.Interval)
+	assert.Equal(t, createCustomAlert.Threshold, readresp.Threshold)
+	assert.Equal(t, createCustomAlert.Enabled, readresp.Enabled)
+	assert.Equal(t, createCustomAlert.Action, readresp.Action)
 
-	updateCustomAlert := CustomAlert{
-		TagName:              "SQLI",
-		LongName:             "Example Alert Updated",
-		BlockDurationSeconds: 1,
-		Interval:             10,
-		Threshold:            10,
-		Enabled:              true,
-		Action:               "flagged",
-		FieldName:            "remoteIP",
-		Type:                 "siteAlert",
+	updateCustomAlert := CustomAlertBody{
+		TagName:   "SQLI",
+		LongName:  "Example Alert Updated",
+		Interval:  10,
+		Threshold: 10,
+		Enabled:   true,
+		Action:    "flagged",
 	}
 	updateResp, err := sc.UpdateCustomAlert(corp, site, readresp.ID, updateCustomAlert)
-
-	// set unknown fields just for equality
-	updateCustomAlert.ID = updateResp.ID
-	updateCustomAlert.Created = updateResp.Created
-	updateCustomAlert.CreatedBy = updateResp.CreatedBy
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.NotEqual(t, createCustomAlert, updateResp)
-	assert.Equal(t, updateCustomAlert, updateResp)
+
+	assert.Equal(t, updateCustomAlert.TagName, updateResp.TagName)
+	assert.Equal(t, updateCustomAlert.LongName, updateResp.LongName)
+	assert.Equal(t, updateCustomAlert.Interval, updateResp.Interval)
+	assert.Equal(t, updateCustomAlert.Threshold, updateResp.Threshold)
+	assert.Equal(t, updateCustomAlert.Enabled, updateResp.Enabled)
+	assert.Equal(t, updateCustomAlert.Action, updateResp.Action)
 	allalerts, err := sc.ListCustomAlerts(corp, site)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, 1, len(allalerts))
-	assert.Equal(t, updateCustomAlert, allalerts[0])
+	assert.Equal(t, updateCustomAlert.TagName, allalerts[0].TagName)
+	assert.Equal(t, updateCustomAlert.LongName, allalerts[0].LongName)
+	assert.Equal(t, updateCustomAlert.Interval, allalerts[0].Interval)
+	assert.Equal(t, updateCustomAlert.Threshold, allalerts[0].Threshold)
+	assert.Equal(t, updateCustomAlert.Enabled, allalerts[0].Enabled)
+	assert.Equal(t, updateCustomAlert.Action, allalerts[0].Action)
 	err = sc.DeleteCustomAlert(corp, site, createresp.ID)
 	if err != nil {
 		t.Fatal(err)
